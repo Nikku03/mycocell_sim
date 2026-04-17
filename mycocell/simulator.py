@@ -151,9 +151,16 @@ class BiochemNet:
     
     def integrate(self, C0: np.ndarray, t_max: float,
                   method: str = 'LSODA', rtol: float = 1e-4,
-                  atol: float = 1e-6, max_step: float = 1e-3):
-        """Integrate from C0 to t_max using scipy solve_ivp."""
+                  atol: float = 1e-6, max_step: Optional[float] = None):
+        """Integrate from C0 to t_max using scipy solve_ivp.
+        
+        max_step defaults to t_max / 100 — loose enough for LSODA's internal
+        step control to work well, tight enough to capture fast transients.
+        For very fast dynamics, pass a smaller value explicitly.
+        """
         from scipy.integrate import solve_ivp
+        if max_step is None:
+            max_step = max(t_max / 100, 1e-3)
         return solve_ivp(self.rhs, (0, t_max), np.asarray(C0, dtype=np.float64),
                          method=method, rtol=rtol, atol=atol, max_step=max_step)
     
